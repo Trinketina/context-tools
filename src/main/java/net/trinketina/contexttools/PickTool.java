@@ -89,7 +89,7 @@ public interface PickTool {
             PlayerInventory inventory = client.player.getInventory();
 
             ItemStack swapItem = null;
-            for (ItemStack item : inventory.main) {
+            for (ItemStack item : inventory) {
                 if (pickaxeMineable && item.isIn(ItemTags.PICKAXES)) {
                     swapItem = item;
                     break;
@@ -112,7 +112,7 @@ public interface PickTool {
                 return false;
             }
 
-            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.selectedSlot, SlotActionType.SWAP, client.player);
+            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
 
             return true;
 
