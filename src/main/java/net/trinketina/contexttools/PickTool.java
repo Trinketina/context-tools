@@ -107,12 +107,19 @@ public interface PickTool {
                     break;
                 }
             }
-            if (swapItem == null) {
-                //no valid tool to swap to
+            if (swapItem == null || swapItem.isEmpty()) {
+                //no valid tool to swap to, run default behavior
                 return false;
             }
+            int slotID = inventory.getSlotWithStack(swapItem);
 
-            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
+            if (PlayerInventory.isValidHotbarIndex(slotID)) {
+                //if the correct tool is in the hotbar, then just move the selected slot to that tool
+                inventory.setSelectedSlot(slotID);
+                return true;
+            }
+
+            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
 
             return true;
 
