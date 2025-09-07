@@ -22,7 +22,7 @@ public interface PickTool {
 
         MinecraftClient client = MinecraftClient.getInstance();
 
-        if (client.player.isInCreativeMode()) {
+        if (client.player.isCreative()) {
             //only do tool swapping in survival
             return false;
         }
@@ -89,7 +89,7 @@ public interface PickTool {
             PlayerInventory inventory = client.player.getInventory();
 
             ItemStack swapItem = null;
-            for (ItemStack item : inventory) {
+            for (ItemStack item : inventory.main) {
                 if (pickaxeMineable && item.isIn(ItemTags.PICKAXES)) {
                     swapItem = item;
                     break;
@@ -112,7 +112,7 @@ public interface PickTool {
                 return false;
             }
 
-            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
+            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.selectedSlot, SlotActionType.SWAP, client.player);
 
             return true;
 
