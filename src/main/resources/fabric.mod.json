@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "context-tools",
 	"version": "${version}",
-	"name": "Pick Swap Tool",
-	"description": "Middle mouse clicking when a tool is selected will swap to the appropriate tool, rather than swapping blocks",
+	"name": "Context Tool Swapping",
+	"description": "Middle mouse clicking with a tool selected will swap to the appropriate tool, rather than swapping blocks",
 	"authors": [
 		"Trinketina"
 	],

@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.slot.SlotActionType;
@@ -107,12 +108,19 @@ public interface PickTool {
                     break;
                 }
             }
-            if (swapItem == null) {
-                //no valid tool to swap to
+            if (swapItem == null || swapItem.isEmpty()) {
+                //no valid tool to swap to, run default behavior
                 return false;
             }
+            int slotID = inventory.getSlotWithStack(swapItem);
 
-            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, inventory.getSlotWithStack(swapItem), inventory.selectedSlot, SlotActionType.SWAP, client.player);
+            if (PlayerInventory.isValidHotbarIndex(slotID)) {
+                //if the correct tool is in the hotbar, then just move the selected slot to that tool
+                inventory.selectedSlot = slotID;
+                return true;
+            }
+
+            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.selectedSlot, SlotActionType.SWAP, client.player);
 
             return true;
 
