@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
-public class ClientItemPickMixin implements PickTool {
+public abstract class ClientItemPickMixin implements PickTool {
 
     @Inject(method = "doItemPick", at = @At("HEAD"), cancellable = true)
     private void doItemPick(CallbackInfo info) {

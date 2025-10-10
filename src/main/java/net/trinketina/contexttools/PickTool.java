@@ -13,7 +13,7 @@ import net.minecraft.util.hit.HitResult;
 import java.util.Objects;
 
 public interface PickTool {
-    public default boolean tryPickTool() {
+    default boolean tryPickTool() {
         boolean heldPickaxe = false;
         boolean heldShovel = false;
         boolean heldAxe = false;
@@ -64,7 +64,7 @@ public interface PickTool {
             BlockHitResult blockHitResult = (BlockHitResult)hitResult;
             Objects.requireNonNull(blockHitResult);
 
-            BlockState blockState = client.player.getWorld().getBlockState(blockHitResult.getBlockPos());
+            BlockState blockState = client.player.getEntityWorld().getBlockState(blockHitResult.getBlockPos());
             Objects.requireNonNull(blockState);
 
 
@@ -119,6 +119,7 @@ public interface PickTool {
                 return true;
             }
 
+            assert client.interactionManager != null;
             client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
 
             return true;
