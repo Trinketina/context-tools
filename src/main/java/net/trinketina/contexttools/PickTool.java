@@ -4,11 +4,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 import java.util.Objects;
 
@@ -118,10 +121,20 @@ public interface PickTool {
                 inventory.setSelectedSlot(slotID);
                 return true;
             }
+            if (swapItem.equals(inventory.getStack(PlayerInventory.OFF_HAND_SLOT))) {
+                //if the correct tool is in the offhand, request to swap with offhand
+                client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ORIGIN, Direction.DOWN));
+                return true;
+            }
 
+            if (slotID < 0) {
+                ToolPickerModClient.LOGGER.warn("could not find slot with " + swapItem + "\nif a tool swap was supposed to occur, please report this as a bug!");
+                return false;
+            }
+
+            //swap tools
             assert client.interactionManager != null;
             client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
-
             return true;
 
         }
