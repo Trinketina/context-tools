@@ -4,12 +4,15 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 import java.util.Objects;
 
@@ -110,7 +113,28 @@ public interface PickTool {
             }
             if (swapItem == null || swapItem.isEmpty()) {
                 //no valid tool to swap to, run default behavior
-                return false;
+                ItemStack item = client.player.getOffHandStack();
+
+                if (pickaxeMineable && item.isIn(ItemTags.PICKAXES)) {
+                    swapItem = item;
+                }
+                if (shovelMineable && item.isIn(ItemTags.SHOVELS)) {
+                    swapItem = item;
+                }
+                if (axeMineable && item.isIn(ItemTags.AXES)) {
+                    swapItem = item;
+                }
+                if (hoeMineable && item.isIn(ItemTags.HOES)) {
+                    swapItem = item;
+                }
+                if (swapItem == null || swapItem.isEmpty()) {
+                    return false;
+                }
+                else {
+                    //if the correct tool is in the offhand, request to swap with offhand
+                    client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ORIGIN, Direction.DOWN));
+                    return true;
+                }
             }
             int slotID = inventory.getSlotWithStack(swapItem);
 
@@ -118,6 +142,11 @@ public interface PickTool {
                 //if the correct tool is in the hotbar, then just move the selected slot to that tool
                 inventory.selectedSlot = slotID;
                 return true;
+            }
+
+            if (slotID < 0) {
+                ToolPickerModClient.LOGGER.warn("could not find slot with " + swapItem + "\nif a tool swap was supposed to occur, please report this as a bug!");
+                return false;
             }
 
             client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.selectedSlot, SlotActionType.SWAP, client.player);
