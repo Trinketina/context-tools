@@ -117,16 +117,13 @@ public interface PickTool {
                 return false;
             }
             int slotID = inventory.getSlotWithStack(swapItem);
-            ToolPickerModClient.LOGGER.info("slot: " + slotID);
 
             if (PlayerInventory.isValidHotbarIndex(slotID)) {
                 //if the correct tool is in the hotbar, then just move the selected slot to that tool
-                ToolPickerModClient.LOGGER.info("hotbar");
                 inventory.setSelectedSlot(slotID);
                 return true;
             }
             if (swapItem.equals(inventory.getStack(PlayerInventory.OFF_HAND_SLOT))) {
-                ToolPickerModClient.LOGGER.info("offhand");
                 //if the correct tool is in the offhand, request to swap with offhand
                 client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ORIGIN, Direction.DOWN));
                 return true;
@@ -137,9 +134,8 @@ public interface PickTool {
                 return false;
             }
 
-            ToolPickerModClient.LOGGER.info("inventory");
+            //swap tool
             client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
-
             return true;
 
         }
