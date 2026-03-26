@@ -1,17 +1,22 @@
 package net.trinketina.contexttools;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerSlotStateChangedPacket;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 import java.util.Objects;
 
@@ -23,29 +28,30 @@ public interface PickTool {
         boolean heldHoe = false;
 
 
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
 
-        if (client.player.isInCreativeMode()) {
+        if (client.player.isCreative()) {
             //only do tool swapping in survival
             return false;
         }
 
-        ItemStack heldItem = client.player.getMainHandStack();
-        if (heldItem == null) {
+        ItemStack heldItem = client.player.getMainHandItem();
+        if (heldItem.isEmpty()) {
             return false;
         }
 
+
         //check if holding a tool, if so of what type
-        if (heldItem.isIn(ItemTags.PICKAXES)) {
+        if ( heldItem.is(ItemTags.PICKAXES)) {
             heldPickaxe = true;
         }
-        if (heldItem.isIn(ItemTags.SHOVELS)) {
+        if (heldItem.is(ItemTags.SHOVELS)) {
             heldShovel = true;
         }
-        if (heldItem.isIn(ItemTags.AXES)) {
+        if (heldItem.is(ItemTags.AXES)) {
             heldAxe = true;
         }
-        if (heldItem.isIn(ItemTags.HOES)) {
+        if (heldItem.is(ItemTags.HOES)) {
             heldHoe = true;
         }
 
@@ -54,33 +60,29 @@ public interface PickTool {
             return false;
         }
 
-        if (client.crosshairTarget != null && client.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.MISS && client.crosshairTarget.getType() != HitResult.Type.ENTITY) {
+        if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.BLOCK && client.hitResult instanceof BlockHitResult blockHitResult ) {
             boolean pickaxeMineable = false;
             boolean shovelMineable = false;
             boolean axeMineable = false;
             boolean hoeMineable = false;
 
-            HitResult nullableHitResult = client.crosshairTarget;
-            Objects.requireNonNull(nullableHitResult);
-            HitResult hitResult = nullableHitResult;
-
-            BlockHitResult blockHitResult = (BlockHitResult)hitResult;
             Objects.requireNonNull(blockHitResult);
 
-            BlockState blockState = client.player.getEntityWorld().getBlockState(blockHitResult.getBlockPos());
+            //BlockState blockState = client.player.getEntityWorld().getBlockState(blockHitResult.getBlockPos());
+            BlockState blockState = Objects.requireNonNull(client.level).getBlockState(blockHitResult.getBlockPos());
             Objects.requireNonNull(blockState);
 
 
-            if (blockState.isIn(BlockTags.PICKAXE_MINEABLE)) {
+            if (blockState.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
                 pickaxeMineable = true;
             }
-            if (blockState.isIn(BlockTags.SHOVEL_MINEABLE)) {
+            if (blockState.is(BlockTags.MINEABLE_WITH_SHOVEL)) {
                 shovelMineable = true;
             }
-            if (blockState.isIn(BlockTags.AXE_MINEABLE)) {
+            if (blockState.is(BlockTags.MINEABLE_WITH_AXE)) {
                 axeMineable = true;
             }
-            if (blockState.isIn(BlockTags.HOE_MINEABLE)) {
+            if (blockState.is(BlockTags.MINEABLE_WITH_HOE)) {
                 hoeMineable = true;
             }
 
@@ -89,23 +91,23 @@ public interface PickTool {
                 return true;
             }
 
-            PlayerInventory inventory = client.player.getInventory();
+            Inventory inventory = client.player.getInventory();
 
             ItemStack swapItem = null;
             for (ItemStack item : inventory) {
-                if (pickaxeMineable && item.isIn(ItemTags.PICKAXES)) {
+                if (pickaxeMineable && item.is(ItemTags.PICKAXES)) {
                     swapItem = item;
                     break;
                 }
-                if (shovelMineable && item.isIn(ItemTags.SHOVELS)) {
+                if (shovelMineable && item.is(ItemTags.SHOVELS)) {
                     swapItem = item;
                     break;
                 }
-                if (axeMineable && item.isIn(ItemTags.AXES)) {
+                if (axeMineable && item.is(ItemTags.AXES)) {
                     swapItem = item;
                     break;
                 }
-                if (hoeMineable && item.isIn(ItemTags.HOES)) {
+                if (hoeMineable && item.is(ItemTags.HOES)) {
                     swapItem = item;
                     break;
                 }
@@ -114,16 +116,18 @@ public interface PickTool {
                 //no valid tool to swap to, run default behavior
                 return false;
             }
-            int slotID = inventory.getSlotWithStack(swapItem);
+            //int slotID = inventory.getSlotWithStack(swapItem);
+            int slotID = inventory.findSlotMatchingItem(swapItem);
 
-            if (PlayerInventory.isValidHotbarIndex(slotID)) {
+            if (Inventory.isHotbarSlot(slotID)) {
                 //if the correct tool is in the hotbar, then just move the selected slot to that tool
                 inventory.setSelectedSlot(slotID);
                 return true;
             }
-            if (swapItem.equals(inventory.getStack(PlayerInventory.OFF_HAND_SLOT))) {
+            if (swapItem.equals(inventory.getItem(Inventory.SLOT_OFFHAND))) {
                 //if the correct tool is in the offhand, request to swap with offhand
-                client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ORIGIN, Direction.DOWN));
+                //client.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ORIGIN, Direction.DOWN));
+                client.getConnection().send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
                 return true;
             }
 
@@ -132,9 +136,12 @@ public interface PickTool {
                 return false;
             }
 
-            //swap tools
-            assert client.interactionManager != null;
-            client.interactionManager.clickSlot(client.player.playerScreenHandler.syncId, slotID, inventory.getSelectedSlot(), SlotActionType.SWAP, client.player);
+            assert client.gameMode != null;
+
+
+            client.gameMode.handleContainerInput(client.player.containerMenu.containerId, slotID, inventory.getSelectedSlot(), ContainerInput.SWAP, client.player);
+
+
             return true;
 
         }
