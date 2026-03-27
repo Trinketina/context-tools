@@ -20,13 +20,18 @@
 		],
 		"client": [
 			"net.trinketina.contexttools.ToolPickerModClient"
-		]
+        ],
+        "modmenu": [
+            "net.trinketina.contexttools.config.ContextToolsModMenu"
+        ]
+
 	},
 	"mixins": [
       "context-tools.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.11",
+        "cloth-config": "*",
 		"minecraft": ">=1.21.9",
 		"java": ">=21"
 	}
