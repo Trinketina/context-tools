@@ -14,6 +14,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.trinketina.contexttools.config.ConfigData;
 
 import java.util.Objects;
 
@@ -26,6 +27,14 @@ public interface PickTool {
 
 
         MinecraftClient client = MinecraftClient.getInstance();
+        if (!client.player.isSneaking() && ConfigData.CONFIG.requireCrouching) {
+            //require crouching if enabled
+            return false;
+        }
+        if (!client.currentScreen.hasControlDown() && ConfigData.CONFIG.requireControlHeldDown) {
+            //require holding control if enabled
+            return false;
+        }
 
         if (client.player.isInCreativeMode()) {
             //only do tool swapping in survival
@@ -33,7 +42,8 @@ public interface PickTool {
         }
 
         ItemStack heldItem = client.player.getMainHandStack();
-        if (heldItem == null) {
+        if (heldItem == null && ConfigData.CONFIG.requireToolInHand) {
+            //require tool in hand if enabled
             return false;
         }
 
@@ -51,8 +61,8 @@ public interface PickTool {
             heldHoe = true;
         }
 
-        if (!heldPickaxe && !heldShovel && !heldAxe && !heldHoe) {
-            //if not holding a tool, then skip PickTool
+        if (!heldPickaxe && !heldShovel && !heldAxe && !heldHoe&& ConfigData.CONFIG.requireToolInHand) {
+            //require tool in hand if enabled
             return false;
         }
 
