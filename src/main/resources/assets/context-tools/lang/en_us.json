@@ -1,0 +1,9 @@
+{
+  "text.autoconfig.context-tools.title": "Context Tools Config",
+  "text.autoconfig.context-tools.option.requireControlHeldDown.@PrefixText": "Require a modifier key to be held down for tool swap functionality",
+  "text.autoconfig.context-tools.option.requireControlHeldDown": "Require Control key to be held down",
+  "text.autoconfig.context-tools.option.requireCrouching": "Require the player to be crouching",
+  "text.autoconfig.context-tools.option.requireToolInHand.@PrefixText": "Require a tool to already be held",
+  "text.autoconfig.context-tools.option.requireToolInHand.@Tooltip": "WARNING: Disabling this will override the default pick block ability\nunless you have one of the the modifier keys enabled",
+  "text.autoconfig.context-tools.option.requireToolInHand": "Require holding a tool"
+}
